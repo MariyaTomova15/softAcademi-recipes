@@ -36,73 +36,79 @@ $(function() {
 
   // render cards from array
   const $recipeTemplate = $('#recipe-template');
-  const $recipesList = $('recipes-list');
+  const $recipesList = $('#recipes-list');
   const caloriesMetric = 'kcal';
-  function renderRecipes(recipesArray){
-
-  }
-  recipes.forEach(function(recipe){
-    const $templateClone = $recipeTemplate.clone();
-    $templateClone.attr('id','');
-    $templateClone.removeClass('d-none');
-    $templateClone.find('.card-title').text(recipe. title);
-    $templateClone.find('.card-descripcion').text(recipe. descripcion);
-    $templateClone.find('.card-calories').text('${recipe. calories} ${caloriesMetrix}');
-    $templateClone.find('.card-img').attr('src', recipe.image);
-    $recipesList.append($templateClone);
+  function renderRecipes(recipesArray) {
+    $recipesList.html('');
+    recipesArray.forEach(function(recipe) {
+      const $templateClone = $recipeTemplate.clone();
+      $templateClone.attr('id', '');
+      $templateClone.removeClass('d-none');
+      $templateClone.find('.card-title').text(recipe.title);
+      $templateClone.find('.card-description').text(recipe.description);
+      $templateClone.find('.card-calories').text(`${recipe.calories} ${caloriesMetric}`);
+      $templateClone.find('.card-img').attr('src', recipe.image);
+      $recipesList.append($templateClone);
     });
+  }
+  renderRecipes(recipes);
 
   // add recipe form and hide modal
   const $recipeForm = $('#add-recipe-form');
-    $recipeForm.submit(function(event) {
+  $recipeForm.submit(function(event) {
     event.preventDefault();
 
-    
     const recipeTitle = $recipeForm.find('input[name="title"]').val();
     const recipeImage = $recipeForm.find('input[name="image"]').val();
     const recipeCalories = $recipeForm.find('input[name="calories"]').val();
-    const recipeType = $recipeForm.find('input[name="type"]').val();
-    const recipeDescription = $recipeForm.find('input[name="description"]').val();
+    const recipeType = $recipeForm.find('select[name="type"]').val();
+    const recipeDescription = $recipeForm.find('textarea[name="description"]').val();
 
     const newRecipe = {
       title: recipeTitle,
       image: recipeImage,
       calories: recipeCalories,
       type: recipeType,
-      descripcion: recipeDescription
+      description: recipeDescription
     };
 
     recipes.unshift(newRecipe);
-    renderRecipes();
+    renderRecipes(recipes);
     $('#addModal').modal('hide');
     $recipeForm[0].reset();
-  })
+
+  });
 
   // filter by type
   const $recipeTypeSelect = $('#food-type');
   $recipeTypeSelect.change(function() {
     const selectedType = $recipeTypeSelect.val();
-    const filteredRecipes = recipes.filter(recipe => recipe.type === selectedType);
-    renderRecipes(recipes);
-  })
-
-
-  // calories range
-  const $sliderRange = $( "#slider-range");
-  $sliderRange.slider({
-  range: true,
-    min: 0,
-    max: 500,
-    values: [ 75, 300 ],
-    slide: function( event, ui ) {
-      $( "#amount" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
+    if (selectedType) {
+      const filteredRecipes = recipes.filter(recipe => recipe.type === selectedType);
+      renderRecipes(filteredRecipes);
+    } else {
+      renderRecipes(recipes);
     }
   });
-  $( "#amount" ).val( "$" + $( "#slider-range" ).slider( "values", 0 ) +
-      " - $" + $( "#slider-range" ).slider( "values", 1 ) );
-  } );
 
+  // calories range
+  const $sliderRange = $( "#slider-range" );
+  $sliderRange.slider({
+    range: true,
+    min: 0,
+    max: 700,
+    values: [ 75, 300 ],
+    slide: function( _, ui ) {
+      $( "#amount" ).text(`${ui.values[0]} - ${ui.values[1]} ${caloriesMetric}`);
+    },
+    change: function(_, ui) {
+      const [min, max] = ui.values;
+      const filteredRecipes = recipes.filter(recipe => recipe.calories >= min && recipe.calories <= max)
+      renderRecipes(filteredRecipes);
+    }
+  });
+  $( "#amount" ).text(`${$sliderRange.slider("values", 0)} - ${$sliderRange.slider("values", 1)} ${caloriesMetric}`);
   
   // happy coding
 
-
+});
